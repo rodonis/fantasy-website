@@ -4,7 +4,6 @@ declare(strict_types=1);
 class PageController {
 
     public function home(array $p): void {
-        $tweaks  = get_tweaks();
         $recent  = Db::all('SELECT slug, title, category, updated_at FROM pages WHERE visibility = "public" ORDER BY updated_at DESC LIMIT 10');
         $featured = Db::one('SELECT slug, title, body_md, category FROM pages WHERE visibility = "public" ORDER BY updated_at DESC LIMIT 1');
         require __DIR__ . '/../views/layout.php';
@@ -14,7 +13,6 @@ class PageController {
 
     public function view(array $p): void {
         $slug   = $p['slug'];
-        $tweaks = get_tweaks();
         $page   = Db::one('SELECT * FROM pages WHERE slug = ?', [$slug]);
 
         if (!$page) {
@@ -47,7 +45,6 @@ class PageController {
     public function edit(array $p): void {
         Auth::requireLogin();
         $slug   = $p['slug'];
-        $tweaks = get_tweaks();
         $page   = Db::one('SELECT * FROM pages WHERE slug = ?', [$slug]);
         require __DIR__ . '/../views/layout.php';
         require __DIR__ . '/../views/edit.php';
@@ -57,7 +54,6 @@ class PageController {
     public function create(array $p): void {
         Auth::requireLogin();
         $slug   = $p['slug'];
-        $tweaks = get_tweaks();
         $page   = null;
         require __DIR__ . '/../views/layout.php';
         require __DIR__ . '/../views/edit.php';
@@ -69,9 +65,11 @@ class PageController {
         $slug  = $p['slug'];
         $title = trim($_POST['title'] ?? '');
         $body  = $_POST['body'] ?? '';
-        $cat   = $_POST['category'] ?? 'lore';
+        $cat   = strtolower(trim($_POST['category'] ?? 'uncategorized'));
+        $cat   = preg_replace('/[^a-z0-9\- ]+/', '', $cat) ?: 'uncategorized';
         $vis   = Auth::isGm() ? ($_POST['visibility'] ?? 'public') : 'public';
         $comment = trim($_POST['comment'] ?? '');
+        $tagsRaw = trim($_POST['tags'] ?? '');
 
         if (!$title || !$body) {
             header('Location: /wiki/' . $slug . '/edit');
@@ -103,16 +101,29 @@ class PageController {
             } catch (PDOException) {}
         }
 
-        // Rebuild tags
+        // Rebuild tags from explicit tags field
         Db::run('DELETE FROM tags WHERE page_id = ?', [$pageId]);
-        foreach (Markdown::extractTags($body) as $tag) {
-            if ($tag) {
-                try { Db::run('INSERT IGNORE INTO tags (page_id, tag) VALUES (?,?)', [$pageId, $tag]); }
-                catch (PDOException) {}
-            }
+        $tags = array_filter(array_map('trim', preg_split('/[,\n]/', $tagsRaw)));
+        foreach ($tags as $tag) {
+            $tag = preg_replace('/\s+/', ' ', $tag);
+            if ($tag === '') continue;
+            try { Db::run('INSERT IGNORE INTO tags (page_id, tag) VALUES (?,?)', [$pageId, $tag]); }
+            catch (PDOException) {}
         }
 
         header('Location: /wiki/' . $slug);
+        exit;
+    }
+
+
+    public function delete(array $p): void {
+        Auth::requireLogin();
+        $slug = $p['slug'];
+        $page = Db::one('SELECT id FROM pages WHERE slug = ?', [$slug]);
+        if ($page) {
+            Db::run('DELETE FROM pages WHERE id = ?', [$page['id']]);
+        }
+        header('Location: /');
         exit;
     }
 
@@ -124,7 +135,6 @@ class PageController {
 
     public function history(array $p): void {
         $slug   = $p['slug'];
-        $tweaks = get_tweaks();
         $page   = Db::one('SELECT * FROM pages WHERE slug = ?', [$slug]);
         if (!$page) { http_response_code(404); require __DIR__ . '/../views/404.php'; return; }
         $revs = Db::all(
@@ -148,38 +158,6 @@ class PageController {
         require __DIR__ . '/../views/partials/backlinks.php';
     }
 
-    public function tweaks(array $p): void {
-        $allowed = [
-            'theme'    => ['parchment','dark','light'],
-            'density'  => ['comfortable','cozy','compact'],
-            'font'     => ['serif','uncial','modern','humanist'],
-            'gmReveal' => [true, false, '1', '0', 'true', 'false'],
-        ];
-        $current = get_tweaks();
-        foreach ($allowed as $key => $opts) {
-            if (isset($_POST[$key])) {
-                $v = $_POST[$key];
-                if ($key === 'gmReveal') {
-                    $current[$key] = in_array($v, ['1','true','on'], true);
-                } elseif (in_array($v, $opts, true)) {
-                    $current[$key] = $v;
-                }
-            }
-        }
-        $secret = $_ENV['WIKI_SECRET'] ?? getenv('WIKI_SECRET') ?: 'changeme';
-        $data   = base64_encode(json_encode($current));
-        $sig    = hash_hmac('sha256', $data, $secret);
-        setcookie('wiki_tweaks', $sig . '.' . $data, [
-            'expires'  => time() + 60 * 60 * 24 * 365,
-            'path'     => '/',
-            'httponly' => true,
-            'samesite' => 'Lax',
-        ]);
-        $ref = $_SERVER['HTTP_REFERER'] ?? '/';
-        header('Location: ' . $ref);
-        exit;
-    }
-
     private function buildToc(string $md): array {
         preg_match_all('/^(#{2,3})\s+(.+)$/m', $md, $m, PREG_SET_ORDER);
         $toc = [];
@@ -195,10 +173,8 @@ class PageController {
     private function buildBreadcrumbs(array $page): array {
         $crumbs = [['label' => 'Codex', 'href' => '/']];
         $cat    = $page['category'] ?? '';
-        $labels = ['regions' => 'Regions', 'bestiary' => 'Bestiary', 'npcs' => 'NPCs',
-                   'lore' => 'Lore', 'sessions' => 'Sessions'];
-        if (isset($labels[$cat])) {
-            $crumbs[] = ['label' => $labels[$cat], 'href' => '/?cat=' . $cat];
+        if ($cat !== '') {
+            $crumbs[] = ['label' => ucwords(str_replace(['-', '_'], ' ', $cat)), 'href' => '/?cat=' . urlencode($cat)];
         }
         $crumbs[] = ['label' => $page['title'], 'href' => null];
         return $crumbs;
