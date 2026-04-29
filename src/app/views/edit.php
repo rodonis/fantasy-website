@@ -28,13 +28,18 @@ $previewUrl = '/wiki/' . $slug . '/preview';
           <label style="font-family:var(--f-display);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute);">Category</label>
           <select name="category"
                   style="width:100%;margin-top:4px;padding:8px 10px;background:var(--paper-2);border:1px solid var(--rule);font-family:var(--f-serif);color:var(--ink);">
-            <?php $allCategories = Db::all("SELECT DISTINCT category FROM pages WHERE category <> '' ORDER BY category"); ?>
-            <?php foreach ($allCategories as $cat): $c = $cat['category']; ?>
+            <?php $allCategories = Db::all("SELECT slug, name FROM categories ORDER BY name"); ?>
+            <?php foreach ($allCategories as $cat): $c = $cat['slug']; ?>
             <option value="<?= htmlspecialchars($c) ?>" <?= ($page['category'] ?? '') === $c ? 'selected' : '' ?>>
-              <?= htmlspecialchars(ucwords(str_replace(['-', '_'], ' ', $c))) ?>
+              <?= htmlspecialchars($cat['name']) ?>
             </option>
             <?php endforeach; ?>
           </select>
+        </div>
+        <div>
+          <label style="font-family:var(--f-display);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute);">New Category</label>
+          <input type="text" name="new_category" placeholder="optional new category slug"
+                 style="width:100%;margin-top:4px;padding:8px 10px;background:var(--paper-2);border:1px solid var(--rule);font-family:var(--f-serif);color:var(--ink);" />
         </div>
         <div>
           <label style="font-family:var(--f-display);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute);">Tags</label>

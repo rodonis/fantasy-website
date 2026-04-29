@@ -52,6 +52,9 @@
       </svg>
     </a>
     <?php endif; ?>
+    <?php if (Auth::isGm()): ?>
+    <a class="wiki-iconbtn" title="Manage GMs" href="/admin/gms">GM</a>
+    <?php endif; ?>
   </div>
 
   <?php if ($user): ?>
