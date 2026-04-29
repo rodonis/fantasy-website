@@ -1,0 +1,157 @@
+/* Supplemental styles — additions beyond the design bundle */
+
+/* Body reset */
+html, body { margin: 0; padding: 0; height: 100%; }
+body { background: #1a1612; }
+.wiki { height: 100vh; }
+
+/* ── Hamburger / sidebar toggle button ────────────────────────────────────── */
+.wiki-menu-btn {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  color: var(--ink-2);
+  border: 1px solid transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  background: transparent;
+  flex-shrink: 0;
+}
+.wiki-menu-btn:hover { background: var(--paper-2); border-color: var(--rule-soft); }
+
+/* ── Collapsible sidebar — desktop ───────────────────────────────────────── */
+.wiki-side {
+  transition: width 0.22s ease, opacity 0.18s ease;
+  overflow: hidden;
+  width: 240px;
+  min-width: 0;
+}
+.wiki-shell { transition: grid-template-columns 0.22s ease; }
+
+/* Collapsed state (desktop) */
+.wiki[data-sidebar="closed"] .wiki-shell {
+  grid-template-columns: 0px 1fr;
+}
+.wiki[data-sidebar="closed"] .wiki-side {
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Mobile — sidebar as overlay drawer ──────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Always single-column on mobile */
+  .wiki-shell {
+    grid-template-columns: 1fr !important;
+    position: relative;
+  }
+
+  /* Sidebar becomes a fixed overlay drawer */
+  .wiki-side {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    width: 280px !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateX(-100%);
+    transition: transform 0.24s ease;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.35);
+    overflow-y: auto;
+    padding-top: 56px; /* clear fixed topbar */
+  }
+
+  /* Open drawer */
+  .wiki[data-sidebar="open"] .wiki-side {
+    transform: translateX(0);
+  }
+
+  /* Scrim behind open drawer */
+  .wiki-side-scrim {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    background: rgba(0,0,0,0.45);
+  }
+  .wiki[data-sidebar="open"] .wiki-side-scrim {
+    display: block;
+  }
+
+  /* Topbar sticks on mobile */
+  .wiki-top {
+    position: sticky;
+    top: 0;
+    z-index: 101;
+  }
+
+  /* Hide text subtitle on small screens */
+  .wiki-mark-text small { display: none; }
+
+  /* Search fills available space */
+  .wiki-search { max-width: none; }
+
+  /* Article grid single-col */
+  .wiki-article { grid-template-columns: 1fr !important; }
+  .wiki-toc { display: none; }
+  .wiki-grid { grid-template-columns: 1fr !important; }
+  .wiki-pillars { grid-template-columns: repeat(3, 1fr); }
+
+  /* Editor stacked on mobile */
+  #edit-form > div:has(#editor-body) {
+    grid-template-columns: 1fr !important;
+  }
+  #preview-pane { min-height: 200px; border-top: 1px solid var(--rule-soft); }
+
+  /* Search results full-width */
+  #search-results { left: 0 !important; right: 0 !important; }
+}
+
+/* Red-link for unwritten wiki pages */
+a.wiki-redlink { color: #a03030; text-decoration-style: dashed; }
+.wiki[data-theme="dark"] a.wiki-redlink { color: #c06060; }
+
+/* Search dropdown */
+#search-results {
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-top: none;
+  box-shadow: 0 8px 24px -8px rgba(0,0,0,0.3);
+  max-height: 320px;
+  overflow-y: auto;
+}
+#search-results:empty { display: none; }
+#search-results .wiki-list { border: none; }
+
+/* Tweaks panel summary marker removal */
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+
+/* Statblock inside prose — full width on narrow */
+.wiki-prose .statblock { max-width: 100%; }
+
+/* Editor split pane */
+#editor-body { resize: vertical; }
+
+/* GM block click-reveal cursor */
+.gm-block.is-hidden { cursor: pointer; }
+
+/* Ensure map aspect ratio is enforced */
+.wiki-map { aspect-ratio: 16 / 9; }
+
+/* Article full-height main scroll */
+.wiki-main { height: 100%; overflow-y: auto; }
+
+/* Infobox img placeholder crosshatch — kept from design */
+.wiki-infobox-img {
+  height: 160px;
+  background:
+    repeating-linear-gradient(135deg, var(--rule-soft) 0 1px, transparent 1px 12px),
+    var(--paper);
+  display: grid;
+  place-items: center;
+  color: var(--ink-mute);
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.wiki-infobox-img img { width: 100%; height: 100%; object-fit: cover; }
