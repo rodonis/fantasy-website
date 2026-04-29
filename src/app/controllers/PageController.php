@@ -43,7 +43,7 @@ class PageController {
     }
 
     public function edit(array $p): void {
-        Auth::requireLogin();
+        Auth::requireGm();
         $slug   = $p['slug'];
         $page   = Db::one('SELECT * FROM pages WHERE slug = ?', [$slug]);
         require __DIR__ . '/../views/layout.php';
@@ -52,7 +52,7 @@ class PageController {
     }
 
     public function create(array $p): void {
-        Auth::requireLogin();
+        Auth::requireGm();
         $slug   = $p['slug'];
         $page   = null;
         require __DIR__ . '/../views/layout.php';
@@ -61,11 +61,13 @@ class PageController {
     }
 
     public function save(array $p): void {
-        Auth::requireLogin();
+        Auth::requireGm();
         $slug  = $p['slug'];
         $title = trim($_POST['title'] ?? '');
         $body  = $_POST['body'] ?? '';
         $cat   = strtolower(trim($_POST['category'] ?? 'uncategorized'));
+        $newCat = strtolower(trim($_POST['new_category'] ?? ''));
+        if ($newCat !== '') $cat = $newCat;
         $cat   = preg_replace('/[^a-z0-9\- ]+/', '', $cat) ?: 'uncategorized';
         $vis   = Auth::isGm() ? ($_POST['visibility'] ?? 'public') : 'public';
         $comment = trim($_POST['comment'] ?? '');
@@ -78,6 +80,11 @@ class PageController {
 
         $existing = Db::one('SELECT id FROM pages WHERE slug = ?', [$slug]);
         $userId   = Auth::user()['id'];
+
+        Db::run(
+            'INSERT INTO categories (slug, name, created_by) VALUES (?,?,?) ON DUPLICATE KEY UPDATE name = VALUES(name)',
+            [$cat, ucwords(str_replace(['-', '_'], ' ', $cat)), $userId]
+        );
 
         if ($existing) {
             Db::run('UPDATE pages SET title=?, body_md=?, visibility=?, category=?, updated_by=? WHERE id=?',
@@ -117,7 +124,7 @@ class PageController {
 
 
     public function delete(array $p): void {
-        Auth::requireLogin();
+        Auth::requireGm();
         $slug = $p['slug'];
         $page = Db::one('SELECT id FROM pages WHERE slug = ?', [$slug]);
         if ($page) {

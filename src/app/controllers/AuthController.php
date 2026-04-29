@@ -2,6 +2,44 @@
 declare(strict_types=1);
 
 class AuthController {
+    public function gmAccountsForm(array $p): void {
+        Auth::requireGm();
+        $tweaks = get_tweaks();
+        $error = null;
+        $success = null;
+        $gms = Db::all('SELECT username, display_name, created_at FROM users WHERE role = "gm" ORDER BY username');
+        require __DIR__ . '/../views/layout.php';
+        require __DIR__ . '/../views/gm-accounts.php';
+        require __DIR__ . '/../views/layout-close.php';
+    }
+
+    public function createGmAccount(array $p): void {
+        Auth::requireGm();
+        $username = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $confirm  = $_POST['confirm'] ?? '';
+        $displayName = trim($_POST['display_name'] ?? '');
+        $tweaks = get_tweaks();
+        $success = null;
+        $error = null;
+
+        if ($password !== $confirm) {
+            $error = 'Passwords do not match.';
+        } elseif (!Auth::register($username, $password, 'gm')) {
+            $error = 'Could not create GM account.';
+        } else {
+            if ($displayName !== '') {
+                Db::run('UPDATE users SET display_name = ? WHERE username = ?', [$displayName, strtolower($username)]);
+            }
+            $success = 'GM account created.';
+        }
+
+        $gms = Db::all('SELECT username, display_name, created_at FROM users WHERE role = "gm" ORDER BY username');
+        require __DIR__ . '/../views/layout.php';
+        require __DIR__ . '/../views/gm-accounts.php';
+        require __DIR__ . '/../views/layout-close.php';
+    }
+
     public function loginForm(array $p): void {
         $tweaks = get_tweaks();
         $error  = null;

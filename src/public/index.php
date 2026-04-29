@@ -19,6 +19,8 @@ $router->post('/login',                     [AuthController::class, 'login']);
 $router->get('/logout',                     [AuthController::class, 'logout']);
 $router->get('/register',                   [AuthController::class, 'registerForm']);
 $router->post('/register',                  [AuthController::class, 'register']);
+$router->get('/admin/gms',                  [AuthController::class, 'gmAccountsForm']);
+$router->post('/admin/gms',                 [AuthController::class, 'createGmAccount']);
 $router->post('/upload',                    [UploadController::class, 'upload']);
 
 $router->dispatch($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);
