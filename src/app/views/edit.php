@@ -1,5 +1,6 @@
 <?php
 $isNew = ($page === null);
+$pageTags = !$isNew ? Db::all('SELECT tag FROM tags WHERE page_id = ? ORDER BY tag', [$page['id']]) : [];
 // $slug is set by the controller before layout.php (and sidebar.php) runs
 $saveUrl  = '/wiki/' . $slug . '/save';
 $previewUrl = '/wiki/' . $slug . '/preview';
@@ -27,12 +28,18 @@ $previewUrl = '/wiki/' . $slug . '/preview';
           <label style="font-family:var(--f-display);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute);">Category</label>
           <select name="category"
                   style="width:100%;margin-top:4px;padding:8px 10px;background:var(--paper-2);border:1px solid var(--rule);font-family:var(--f-serif);color:var(--ink);">
-            <?php foreach (['regions','bestiary','npcs','lore','sessions'] as $c): ?>
-            <option value="<?= $c ?>" <?= ($page['category'] ?? 'lore') === $c ? 'selected' : '' ?>>
-              <?= ucfirst($c) ?>
+            <?php $allCategories = Db::all("SELECT DISTINCT category FROM pages WHERE category <> '' ORDER BY category"); ?>
+            <?php foreach ($allCategories as $cat): $c = $cat['category']; ?>
+            <option value="<?= htmlspecialchars($c) ?>" <?= ($page['category'] ?? '') === $c ? 'selected' : '' ?>>
+              <?= htmlspecialchars(ucwords(str_replace(['-', '_'], ' ', $c))) ?>
             </option>
             <?php endforeach; ?>
           </select>
+        </div>
+        <div>
+          <label style="font-family:var(--f-display);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-mute);">Tags</label>
+          <input type="text" name="tags" placeholder="tag one, tag two" value="<?= htmlspecialchars(implode(', ', array_map(fn($t) => $t['tag'], $pageTags ?? []))) ?>"
+                 style="width:100%;margin-top:4px;padding:8px 10px;background:var(--paper-2);border:1px solid var(--rule);font-family:var(--f-serif);color:var(--ink);" />
         </div>
         <?php if (Auth::isGm()): ?>
         <div>
@@ -89,6 +96,8 @@ $previewUrl = '/wiki/' . $slug . '/preview';
         Save Page
       </button>
       <?php if (!$isNew): ?>
+      <button type="submit" formaction="/wiki/<?= htmlspecialchars($slug) ?>/delete" formmethod="post" onclick="return confirm('Delete this page?')"
+              style="padding:8px 16px;border:1px solid #a33;color:#a33;background:transparent;font-family:var(--f-display);font-size:13px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;">Delete</button>
       <a href="/wiki/<?= htmlspecialchars($slug) ?>"
          style="padding:8px 16px;border:1px solid var(--rule);font-family:var(--f-display);font-size:13px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;color:var(--ink-mute);">
         Cancel

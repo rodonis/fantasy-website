@@ -55,13 +55,21 @@
   });
 })();
 </script>
+
+<script>
+(function(){
+  var savedTheme = localStorage.getItem('wiki_theme') || 'parchment';
+  document.addEventListener('DOMContentLoaded', function(){
+    var root = document.getElementById('wiki-root');
+    if (root) root.dataset.theme = (savedTheme === 'candle' ? 'dark' : 'parchment');
+  });
+})();
+</script>
+
 </head>
 <body>
 <div class="wiki"
-     data-theme="<?= htmlspecialchars($tweaks['theme']) ?>"
-     data-density="<?= htmlspecialchars($tweaks['density']) ?>"
-     data-font="<?= htmlspecialchars($tweaks['font']) ?>"
-     id="wiki-root"
+          id="wiki-root"
      hx-headers='{"X-Wiki-Request": "1"}'>
 <?php require __DIR__ . '/partials/topbar.php'; ?>
 <div id="sidebar-scrim" class="wiki-side-scrim"></div>

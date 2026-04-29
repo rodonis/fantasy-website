@@ -71,14 +71,25 @@
   <a href="/login" class="wiki-iconbtn" title="Login" style="border:1px solid var(--rule-soft);padding:4px 10px;border-radius:2px;font-family:var(--f-display);font-size:12px;text-decoration:none;color:var(--ink-2);">Login</a>
   <?php endif; ?>
 
-  <!-- Tweaks panel -->
-  <details style="position:relative;">
-    <summary class="wiki-iconbtn" title="Display settings" style="cursor:pointer;list-style:none;">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
-        <circle cx="8" cy="8" r="2.5"/>
-        <path d="M8 1 V3 M8 13 V15 M1 8 H3 M13 8 H15 M3.2 3.2 L4.6 4.6 M11.4 11.4 L12.8 12.8 M12.8 3.2 L11.4 4.6 M4.6 11.4 L3.2 12.8"/>
-      </svg>
-    </summary>
-    <?php require __DIR__ . '/tweaks.php'; ?>
-  </details>
+  <button class="wiki-iconbtn" id="theme-toggle" title="Toggle parchment/candle mode">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2">
+      <circle cx="8" cy="8" r="3"/>
+      <path d="M8 1 V3 M8 13 V15 M1 8 H3 M13 8 H15"/>
+    </svg>
+  </button>
 </header>
+<script>
+(function(){
+  document.addEventListener('DOMContentLoaded', function(){
+    var btn = document.getElementById('theme-toggle');
+    var root = document.getElementById('wiki-root');
+    if (!btn || !root) return;
+    btn.addEventListener('click', function(){
+      var current = (root.dataset.theme === 'dark') ? 'candle' : 'parchment';
+      var next = current === 'candle' ? 'parchment' : 'candle';
+      root.dataset.theme = next === 'candle' ? 'dark' : 'parchment';
+      localStorage.setItem('wiki_theme', next);
+    });
+  });
+})();
+</script>

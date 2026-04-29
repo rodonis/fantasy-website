@@ -1,8 +1,7 @@
 <?php
 $currentSlug = $page['slug'] ?? '';
-$categories = ['regions' => 'Regions', 'bestiary' => 'Bestiary', 'npcs' => 'NPCs', 'lore' => 'Lore', 'sessions' => 'Sessions'];
 $gmWhere = Auth::isGm() ? '' : 'AND visibility = "public"';
-
+$categories = Db::all("SELECT category, COUNT(*) AS page_count FROM pages WHERE category <> '' $gmWhere GROUP BY category ORDER BY category");
 $glyphs = [
     'home'   => '<path d="M2 7 L8 2 L14 7 V14 H2 Z"/>',
     'region' => '<path d="M2 12 L5 4 L9 8 L13 3 L14 14 Z"/>',
@@ -36,7 +35,9 @@ $catGlyphs = [
     </ul>
   </div>
 
-  <?php foreach ($categories as $catKey => $catLabel):
+  <?php foreach ($categories as $catRow):
+    $catKey = $catRow['category'];
+    $catLabel = ucwords(str_replace(['-', '_'], ' ', $catKey));
     $glyphKey = $catGlyphs[$catKey] ?? 'star';
     $pages = Db::all("SELECT slug, title FROM pages WHERE category = ? $gmWhere ORDER BY title LIMIT 20", [$catKey]);
     if (!$pages) continue;

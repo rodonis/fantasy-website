@@ -8,6 +8,7 @@ $router->get('/',                           [PageController::class, 'home']);
 $router->get('/wiki/{slug}',                [PageController::class, 'view']);
 $router->get('/wiki/{slug}/edit',           [PageController::class, 'edit']);
 $router->post('/wiki/{slug}/save',          [PageController::class, 'save']);
+$router->post('/wiki/{slug}/delete',        [PageController::class, 'delete']);
 $router->get('/wiki/{slug}/history',        [PageController::class, 'history']);
 $router->post('/wiki/{slug}/preview',       [PageController::class, 'preview']);
 $router->get('/wiki/{slug}/backlinks',      [PageController::class, 'backlinks']);
@@ -18,7 +19,6 @@ $router->post('/login',                     [AuthController::class, 'login']);
 $router->get('/logout',                     [AuthController::class, 'logout']);
 $router->get('/register',                   [AuthController::class, 'registerForm']);
 $router->post('/register',                  [AuthController::class, 'register']);
-$router->post('/tweaks',                    [PageController::class, 'tweaks']);
 $router->post('/upload',                    [UploadController::class, 'upload']);
 
 $router->dispatch($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);

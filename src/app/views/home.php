@@ -6,12 +6,10 @@ $stats = [
 ];
 ?>
 <section class="wiki-hero">
-  <div class="wiki-eyebrow"><span class="dash"></span>Pathfinder 1e Campaign Wiki</div>
-  <h1 class="wiki-h1">Codex of the <em>Broken Pantheon</em></h1>
+  <div class="wiki-eyebrow"><span class="dash"></span>Your Personal Wiki</div>
+  <h1 class="wiki-h1">Build Your <em>World Wiki</em></h1>
   <p class="wiki-lede">
-    A wounded record of the Sundered World, set down by surviving loremasters
-    after the gods turned their faces from us. Within these pages: ruined holds,
-    petty tyrants, hungry relics, and the long roads that bind them.
+    Start with a clean landing page and shape this wiki around your own setting, notes, and documentation. Create pages, organize by category, and connect ideas with tags and links.
   </p>
   <div class="wiki-hero-meta">
     <span><?= $stats['entries'] ?> entries</span>
